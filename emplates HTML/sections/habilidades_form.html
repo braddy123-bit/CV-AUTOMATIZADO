@@ -1,0 +1,115 @@
+{% extends 'curriculum/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if object %}Editar{% else %}Agregar{% endif %} Habilidad{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-lg-6 mx-auto">
+        
+        <div class="mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'curriculum:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">{% if object %}Editar{% else %}Agregar{% endif %} Habilidad</li>
+                </ol>
+            </nav>
+            
+            <h2 class="fw-bold">
+                <i class="bi bi-star text-warning me-2"></i>
+                {% if object %}Editar{% else %}Agregar{% endif %} Habilidad
+            </h2>
+        </div>
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}</label>
+                        {{ form.nombre }}
+                        {% if form.nombre.errors %}
+                            <div class="text-danger small">{{ form.nombre.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.tipo.id_for_label }}" class="form-label">{{ form.tipo.label }}</label>
+                        {{ form.tipo }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.nivel.id_for_label }}" class="form-label">
+                            {{ form.nivel.label }}
+                            <span class="badge bg-primary" id="nivelValue">50%</span>
+                        </label>
+                        {{ form.nivel }}
+                        <output id="nivelOutput" class="form-text">50%</output>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.anos_experiencia.id_for_label }}" class="form-label">{{ form.anos_experiencia.label }}</label>
+                        {{ form.anos_experiencia }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.descripcion.id_for_label }}" class="form-label">{{ form.descripcion.label }}</label>
+                        {{ form.descripcion }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.certificado.id_for_label }}" class="form-label">{{ form.certificado.label }}</label>
+                        {{ form.certificado }}
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        {{ form.destacada }}
+                        <label class="form-check-label" for="{{ form.destacada.id_for_label }}">
+                            {{ form.destacada.label }}
+                        </label>
+                    </div>
+                    
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Guardar
+                        </button>
+                        <a href="{% url 'curriculum:dashboard' %}" class="btn btn-outline-secondary">
+                            Cancelar
+                        </a>
+                        {% if object %}
+                        <a href="{% url 'curriculum:eliminar_habilidad' object.pk %}" class="btn btn-outline-danger ms-auto" onclick="return confirm('¿Estás seguro?')">
+                            <i class="bi bi-trash me-2"></i>
+                            Eliminar
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const rangeInput = document.querySelector('input[type="range"]');
+    const output = document.getElementById('nivelOutput');
+    const badge = document.getElementById('nivelValue');
+    
+    if (rangeInput) {
+        rangeInput.addEventListener('input', function() {
+            output.textContent = this.value + '%';
+            badge.textContent = this.value + '%';
+        });
+        
+        // Set initial value
+        output.textContent = rangeInput.value + '%';
+        badge.textContent = rangeInput.value + '%';
+    }
+</script>
+{% endblock %}
