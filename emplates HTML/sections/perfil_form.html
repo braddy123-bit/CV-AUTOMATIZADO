@@ -1,0 +1,72 @@
+{% extends 'curriculum/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if object %}Editar{% else %}Crear{% endif %} Perfil - CV Profesional{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        
+        <!-- Header -->
+        <div class="mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'curriculum:dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">{% if object %}Editar{% else %}Crear{% endif %} Perfil</li>
+                </ol>
+            </nav>
+            
+            <h2 class="fw-bold">
+                <i class="bi bi-person-badge text-primary me-2"></i>
+                {% if object %}Editar{% else %}Crear{% endif %} Perfil Profesional
+            </h2>
+            <p class="text-muted">Completa tu información personal y profesional</p>
+        </div>
+        
+        <!-- Formulario -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>
+                            {% if object %}Actualizar{% else %}Crear{% endif %} Perfil
+                        </button>
+                        <a href="{% url 'curriculum:dashboard' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle me-2"></i>
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Ayuda -->
+        <div class="alert alert-info border-0 mt-3">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <strong>Tip:</strong> Un perfil completo y bien redactado aumenta tus posibilidades de conseguir empleo.
+        </div>
+        
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Preview de foto
+    document.querySelector('input[type="file"]')?.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                console.log('Foto cargada:', event.target.result);
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+</script>
+{% endblock %}
