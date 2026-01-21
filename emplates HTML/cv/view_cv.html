@@ -1,0 +1,319 @@
+{% extends 'curriculum/base.html' %}
+{% load static %}
+
+{% block title %}Mi CV - {{ perfil.nombre_completo }}{% endblock %}
+
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-1">Mi Currículum Vitae</h2>
+                <p class="text-muted">Vista previa de tu CV profesional</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'curriculum:visualizar_cv' %}" class="btn btn-outline-primary" target="_blank">
+                    <i class="bi bi-eye me-2"></i> Visualizar PDF
+                </a>
+                <a href="{% url 'curriculum:descargar_cv' %}" class="btn btn-primary">
+                    <i class="bi bi-download me-2"></i> Descargar PDF
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sidebar -->
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-body text-center p-4">
+                {% if perfil.foto %}
+                    <img src="{{ perfil.foto.url }}" alt="{{ perfil.nombre_completo }}" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
+                {% else %}
+                    <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 150px; height: 150px; font-size: 48px;">
+                        {{ perfil.nombres.0 }}{{ perfil.apellidos.0 }}
+                    </div>
+                {% endif %}
+                
+                <h4 class="fw-bold mb-1">{{ perfil.nombre_completo }}</h4>
+                <p class="text-primary mb-3">{{ perfil.titulo_profesional }}</p>
+                
+                <hr>
+                
+                <div class="text-start">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-envelope me-2"></i> Contacto</h6>
+                    <p class="small mb-2">
+                        <i class="bi bi-envelope-fill text-muted me-2"></i>
+                        <a href="mailto:{{ perfil.email }}" class="text-decoration-none">{{ perfil.email }}</a>
+                    </p>
+                    <p class="small mb-2">
+                        <i class="bi bi-telephone-fill text-muted me-2"></i>
+                        {{ perfil.telefono }}
+                    </p>
+                    <p class="small mb-2">
+                        <i class="bi bi-geo-alt-fill text-muted me-2"></i>
+                        {{ perfil.ciudad }}, {{ perfil.pais }}
+                    </p>
+                    
+                    {% if perfil.linkedin or perfil.github or perfil.portafolio_web %}
+                    <hr>
+                    <h6 class="fw-bold mb-3"><i class="bi bi-link-45deg me-2"></i> Enlaces</h6>
+                    {% if perfil.linkedin %}
+                    <p class="small mb-2">
+                        <i class="bi bi-linkedin text-primary me-2"></i>
+                        <a href="{{ perfil.linkedin }}" target="_blank" class="text-decoration-none">LinkedIn</a>
+                    </p>
+                    {% endif %}
+                    {% if perfil.github %}
+                    <p class="small mb-2">
+                        <i class="bi bi-github text-dark me-2"></i>
+                        <a href="{{ perfil.github }}" target="_blank" class="text-decoration-none">GitHub</a>
+                    </p>
+                    {% endif %}
+                    {% if perfil.portafolio_web %}
+                    <p class="small mb-2">
+                        <i class="bi bi-globe text-success me-2"></i>
+                        <a href="{{ perfil.portafolio_web }}" target="_blank" class="text-decoration-none">Portafolio</a>
+                    </p>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contenido Principal -->
+    <div class="col-lg-8">
+        
+        <!-- Resumen Profesional -->
+        {% if perfil.resumen_profesional %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-person-lines-fill text-primary me-2"></i>
+                    Resumen Profesional
+                </h5>
+                <p class="text-muted">{{ perfil.resumen_profesional }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Experiencia Profesional -->
+        {% if experiencias %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-briefcase-fill text-success me-2"></i>
+                    Experiencia Profesional
+                </h5>
+                
+                {% for exp in experiencias %}
+                <div class="position-relative {% if not forloop.last %}mb-4 pb-4 border-bottom{% endif %}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ exp.cargo }}</h6>
+                            <p class="text-primary mb-1">{{ exp.empresa }}</p>
+                            <p class="text-muted small mb-0">
+                                <i class="bi bi-calendar me-1"></i>
+                                {{ exp.fecha_inicio|date:"M Y" }} - 
+                                {% if exp.trabajo_actual %}Presente{% else %}{{ exp.fecha_fin|date:"M Y" }}{% endif %}
+                                | {{ exp.ciudad }}, {{ exp.pais }}
+                            </p>
+                        </div>
+                        <a href="{% url 'curriculum:editar_experiencia' exp.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </div>
+                    <p class="text-muted small">{{ exp.descripcion }}</p>
+                    {% if exp.logros %}
+                    <p class="small mb-0"><strong>Logros:</strong> {{ exp.logros }}</p>
+                    {% endif %}
+                    {% if exp.tecnologias_usadas %}
+                    <p class="small text-muted mb-0">
+                        <i class="bi bi-code-slash me-1"></i> {{ exp.tecnologias_usadas }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                
+                <a href="{% url 'curriculum:crear_experiencia' %}" class="btn btn-outline-success btn-sm mt-2">
+                    <i class="bi bi-plus-circle me-1"></i> Agregar Experiencia
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Formación Académica -->
+        {% if formacion %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-mortarboard-fill text-info me-2"></i>
+                    Formación Académica
+                </h5>
+                
+                {% for edu in formacion %}
+                <div class="{% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ edu.titulo_obtenido }}</h6>
+                            <p class="text-info mb-1">{{ edu.institucion }}</p>
+                            <p class="text-muted small mb-0">
+                                {{ edu.fecha_inicio|date:"Y" }} - 
+                                {% if edu.fecha_fin %}{{ edu.fecha_fin|date:"Y" }}{% else %}Presente{% endif %}
+                                {% if edu.promedio %} | Promedio: {{ edu.promedio }}/10{% endif %}
+                            </p>
+                        </div>
+                        <a href="{% url 'curriculum:editar_educacion' edu.pk %}" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <a href="{% url 'curriculum:crear_educacion' %}" class="btn btn-outline-info btn-sm mt-2">
+                    <i class="bi bi-plus-circle me-1"></i> Agregar Formación
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Habilidades -->
+        {% if habilidades %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-star-fill text-warning me-2"></i>
+                    Habilidades
+                </h5>
+                
+                {% for hab in habilidades %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small fw-bold">{{ hab.nombre }}</span>
+                        <span class="small text-muted">{{ hab.nivel }}%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" style="width: {{ hab.nivel }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <a href="{% url 'curriculum:crear_habilidad' %}" class="btn btn-outline-warning btn-sm mt-2">
+                    <i class="bi bi-plus-circle me-1"></i> Agregar Habilidad
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Proyectos -->
+        {% if proyectos %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-folder-fill text-danger me-2"></i>
+                    Proyectos
+                </h5>
+                
+                <div class="row g-3">
+                    {% for proy in proyectos %}
+                    <div class="col-md-6">
+                        <div class="card border">
+                            {% if proy.imagen %}
+                            <img src="{{ proy.imagen.url }}" class="card-img-top" alt="{{ proy.nombre }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <h6 class="fw-bold">{{ proy.nombre }}</h6>
+                                <p class="small text-muted mb-2">{{ proy.descripcion_corta }}</p>
+                                <div class="d-flex gap-2">
+                                    {% if proy.url_demo %}
+                                    <a href="{{ proy.url_demo }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                        <i class="bi bi-eye"></i> Demo
+                                    </a>
+                                    {% endif %}
+                                    {% if proy.url_repositorio %}
+                                    <a href="{{ proy.url_repositorio }}" class="btn btn-sm btn-outline-dark" target="_blank">
+                                        <i class="bi bi-github"></i> Repo
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'curriculum:editar_proyecto' proy.pk %}" class="btn btn-sm btn-outline-secondary ms-auto">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <a href="{% url 'curriculum:crear_proyecto' %}" class="btn btn-outline-danger btn-sm mt-3">
+                    <i class="bi bi-plus-circle me-1"></i> Agregar Proyecto
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Certificaciones -->
+        {% if certificaciones %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-award-fill text-primary me-2"></i>
+                    Certificaciones
+                </h5>
+                
+                {% for cert in certificaciones %}
+                <div class="{% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ cert.nombre }}</h6>
+                            <p class="text-muted small mb-0">{{ cert.institucion }} | {{ cert.fecha_obtencion|date:"M Y" }}</p>
+                        </div>
+                        <a href="{% url 'curriculum:editar_certificacion' cert.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <a href="{% url 'curriculum:crear_certificacion' %}" class="btn btn-outline-primary btn-sm mt-2">
+                    <i class="bi bi-plus-circle me-1"></i> Agregar Certificación
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Referencias -->
+        {% if referencias %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-people-fill text-secondary me-2"></i>
+                    Referencias Profesionales
+                </h5>
+                
+                {% for ref in referencias %}
+                <div class="{% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}">
+                    <h6 class="fw-bold mb-1">{{ ref.nombre_completo }}</h6>
+                    <p class="text-muted small mb-1">{{ ref.cargo }} en {{ ref.empresa }}</p>
+                    {% if ref.mostrar_contacto %}
+                    <p class="small mb-0">
+                        <i class="bi bi-envelope me-1"></i> {{ ref.email }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                
+                <a href="{% url 'curriculum:crear_referencia' %}" class="btn btn-outline-secondary btn-sm mt-2">
+                    <i class="bi bi-plus-circle me-1"></i> Agregar Referencia
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+    </div>
+</div>
+
+{% endblock %}
