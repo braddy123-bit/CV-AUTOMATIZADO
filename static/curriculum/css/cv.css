@@ -1,0 +1,449 @@
+/* ============================================
+   CV CSS - Estilos específicos para el CV
+   ============================================ */
+
+/* CV Container */
+.cv-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Perfil Header */
+.cv-header {
+    background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
+    color: white;
+    padding: 3rem 0;
+    border-radius: 12px 12px 0 0;
+    margin-bottom: 2rem;
+}
+
+.cv-photo {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.cv-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.cv-subtitle {
+    font-size: 1.3rem;
+    opacity: 0.95;
+    margin-bottom: 1rem;
+}
+
+/* Timeline (Experiencia y Formación) */
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #2E7D32, #4CAF50);
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 2rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -2.5rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    background: #2E7D32;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #2E7D32;
+}
+
+.timeline-item.active::before {
+    background: #4CAF50;
+    box-shadow: 0 0 0 2px #4CAF50, 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.timeline-date {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.timeline-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    color: #2E7D32;
+}
+
+.timeline-company {
+    font-size: 1rem;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-description {
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+/* Skills Section */
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.skill-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.skill-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.skill-name {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #343a40;
+}
+
+.skill-level {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.skill-level-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #2E7D32, #4CAF50);
+    border-radius: 10px;
+    transition: width 1s ease-out;
+}
+
+.skill-percentage {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Skills by Type */
+.skills-technical .skill-level-bar {
+    background: linear-gradient(90deg, #1976D2, #42A5F5);
+}
+
+.skills-soft .skill-level-bar {
+    background: linear-gradient(90deg, #FFC107, #FFD54F);
+}
+
+.skills-language .skill-level-bar {
+    background: linear-gradient(90deg, #E91E63, #F06292);
+}
+
+/* Proyectos Grid */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.project-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.project-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+}
+
+.project-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.project-content {
+    padding: 1.5rem;
+}
+
+.project-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #343a40;
+}
+
+.project-description {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.project-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.tech-badge {
+    background: #e9ecef;
+    color: #495057;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.project-links {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Certificaciones */
+.certifications-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.certification-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border-left: 4px solid #2E7D32;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.certification-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateX(4px);
+}
+
+.certification-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #2E7D32;
+}
+
+.certification-issuer {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.certification-date {
+    font-size: 0.85rem;
+    color: #adb5bd;
+}
+
+.certification-badge {
+    display: inline-block;
+    background: #e8f5e9;
+    color: #2E7D32;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+}
+
+/* Referencias */
+.reference-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1rem;
+}
+
+.reference-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #343a40;
+    margin-bottom: 0.3rem;
+}
+
+.reference-position {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.reference-company {
+    color: #2E7D32;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+}
+
+.reference-testimonial {
+    font-style: italic;
+    color: #495057;
+    line-height: 1.6;
+    padding-left: 1rem;
+    border-left: 3px solid #e9ecef;
+}
+
+/* Contact Icons */
+.contact-icon {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 50%;
+    color: #2E7D32;
+    transition: all 0.3s ease;
+}
+
+.contact-icon:hover {
+    background: #2E7D32;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Sidebar del CV */
+.cv-sidebar {
+    position: sticky;
+    top: 20px;
+}
+
+.cv-sidebar .card {
+    background: white;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Estadísticas del Dashboard */
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #343a40;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Print Styles para CV */
+@media print {
+    .cv-sidebar {
+        position: static !important;
+    }
+    
+    .btn, .breadcrumb, nav, footer {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+        page-break-inside: avoid;
+    }
+    
+    .timeline::before {
+        background: #2E7D32 !important;
+    }
+    
+    .project-card,
+    .certification-card {
+        page-break-inside: avoid;
+    }
+}
+
+/* Responsive CV */
+@media (max-width: 992px) {
+    .cv-sidebar {
+        position: static;
+        margin-bottom: 2rem;
+    }
+    
+    .skills-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    
+    .projects-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .cv-title {
+        font-size: 2rem;
+    }
+    
+    .cv-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .cv-photo {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .timeline {
+        padding-left: 1.5rem;
+    }
+    
+    .timeline-item::before {
+        left: -2rem;
+    }
+    
+    .certifications-grid {
+        grid-template-columns: 1fr;
+    }
+}
