@@ -365,18 +365,6 @@ coverage report
 coverage html
 ```
 
----
-
-## 🤝 Contribuir
-
-1. Fork el proyecto
-2. Crear rama (`git checkout -b feature/NuevaCaracteristica`)
-3. Commit cambios (`git commit -m 'Agregar nueva característica'`)
-4. Push a la rama (`git push origin feature/NuevaCaracteristica`)
-5. Abrir Pull Request
-
----
-
 ## 📝 Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
