@@ -1,0 +1,73 @@
+{% extends 'curriculum/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Registro - CV Profesional{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        
+        <div class="card shadow-sm border-0 mt-4 mb-5">
+            <div class="card-body p-5">
+                
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-person-plus text-success" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold">Crear Cuenta</h3>
+                    <p class="text-muted">Regístrate gratis y comienza a crear tu CV profesional</p>
+                </div>
+                
+                <!-- Formulario -->
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    
+                    <button type="submit" class="btn btn-success w-100 btn-lg mt-3">
+                        <i class="bi bi-person-plus me-2"></i>
+                        Crear Cuenta
+                    </button>
+                </form>
+                
+                <!-- Enlaces adicionales -->
+                <div class="text-center mt-4">
+                    <hr>
+                    <p class="text-muted mb-0">
+                        ¿Ya tienes cuenta? 
+                        <a href="{% url 'curriculum:login' %}" class="text-decoration-none fw-bold">
+                            Inicia sesión aquí
+                        </a>
+                    </p>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- Beneficios -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                    <p class="small text-muted mb-0 mt-2">Gratis para siempre</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                    <p class="small text-muted mb-0 mt-2">Sin tarjeta requerida</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                    <p class="small text-muted mb-0 mt-2">Descarga ilimitada</p>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+{% endblock %}
