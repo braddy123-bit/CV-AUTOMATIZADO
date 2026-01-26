@@ -224,17 +224,20 @@ class CrearPerfilView(LoginRequiredMixin, CreateView):
 
 
 class EditarPerfilView(LoginRequiredMixin, UpdateView):
-    """
-    Editar perfil profesional
-    """
     model = PerfilProfesional
     form_class = PerfilProfesionalForm
     template_name = 'curriculum/sections/perfil_form.html'
     success_url = reverse_lazy('curriculum:dashboard')
-    
+
+    def dispatch(self, request, *args, **kwargs):
+        if not hasattr(request.user, 'perfil'):
+            messages.warning(request, "Debes crear tu perfil primero.")
+            return redirect('curriculum:crear_perfil')
+        return super().dispatch(request, *args, **kwargs)
+
     def get_object(self):
         return self.request.user.perfil
-    
+
     def form_valid(self, form):
         messages.success(self.request, 'Perfil actualizado correctamente.')
         return super().form_valid(form)
@@ -506,7 +509,6 @@ def descargar_cv_pdf(request):
     except PerfilProfesional.DoesNotExist:
         messages.error(request, 'Debes crear tu perfil primero.')
         return redirect('curriculum:crear_perfil')
-
 
 @login_required
 def visualizar_cv_pdf(request):

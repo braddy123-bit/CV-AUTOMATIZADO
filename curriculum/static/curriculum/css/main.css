@@ -385,3 +385,7 @@ footer a:hover {
         background-color: white;
     }
 }
+.text-white {
+    color: #222 !important;
+}
+
