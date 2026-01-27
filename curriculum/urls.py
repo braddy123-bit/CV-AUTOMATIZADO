@@ -30,8 +30,8 @@ urlpatterns = [
     # ======================================
     # PERFIL PROFESIONAL
     # ======================================
-    path('perfil/crear/', views.CrearPerfilView.as_view(), name='crear_perfil'),
-    path('perfil/editar/', views.EditarPerfilView.as_view(), name='editar_perfil'),
+    path('perfil/crear/', CrearPerfilView.as_view(), name='crear_perfil'),
+    path('perfil/editar/', EditarPerfilView.as_view(), name='editar_perfil'),
 
     
     # ======================================
