@@ -240,13 +240,8 @@ footer a:hover {
 /* Gradientes */
 /* ===== HERO CLARO (HOME) ===== */
 .bg-gradient {
-    background: linear-gradient(135deg, #ffffff 0%, #f5f7fa 100%) !important;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
 }
-
-.text-white {
-    color: #212529 !important; /* texto oscuro elegante */
-}
-
 
 /* Animaciones */
 @keyframes fadeIn {
@@ -395,3 +390,12 @@ footer a:hover {
     color: #222 !important;
 }
 
+/* HERO CLARO */
+.hero-light {
+    background: linear-gradient(135deg, #ffffff 0%, #f3f6f9 100%);
+    color: #212529;
+}
+
+.hero-light .lead {
+    color: #495057;
+}
