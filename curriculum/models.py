@@ -9,7 +9,7 @@ from django.urls import reverse
 from phonenumber_field.modelfields import PhoneNumberField
 from datetime import date
 from django.core.exceptions import ValidationError
-
+from django.utils.text import slugify
 
 import uuid
 
@@ -114,16 +114,15 @@ class PerfilProfesional(models.Model):
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"
     
-    from django.utils.text import slugify
+    
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(
-                f"{self.nombres} {self.apellidos} {uuid.uuid4().hex[:8]}"
-            )
+            base_slug = slugify(f"{self.nombres} {self.apellidos}")
+            self.slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
 
-        self.full_clean()
         super().save(*args, **kwargs)
+
 
         
 
