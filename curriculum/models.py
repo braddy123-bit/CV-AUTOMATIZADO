@@ -296,15 +296,13 @@ class Proyecto(models.Model):
     url_repositorio = models.URLField(max_length=200, blank=True, verbose_name='Repositorio (GitHub/GitLab)')
     
     # Imagen del proyecto
-    imagen = ProcessedImageField(
-        upload_to='project_images/',
-        processors=[ResizeToFill(800, 450)],
-        format='JPEG',
-        options={'quality': 85},
-        null=True,
-        blank=True,
-        verbose_name='Imagen del Proyecto'
-    )
+    imagen = models.ImageField(
+    upload_to='project_images/',
+    null=True,
+    blank=True,
+    verbose_name='Imagen del Proyecto'
+)
+
     
     destacado = models.BooleanField(default=False, verbose_name='Proyecto Destacado')
     orden = models.PositiveIntegerField(default=0)
