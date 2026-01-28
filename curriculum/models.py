@@ -7,8 +7,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 from django.urls import reverse
 from phonenumber_field.modelfields import PhoneNumberField
-from imagekit.models import ProcessedImageField
-from imagekit.processors import ResizeToFill
+
 import uuid
 
 
@@ -37,15 +36,13 @@ class PerfilProfesional(models.Model):
     nacionalidad = models.CharField(max_length=50, default='Ecuatoriana', verbose_name='Nacionalidad')
     
     # Foto de perfil con procesamiento automático
-    foto = ProcessedImageField(
-        upload_to='profile_photos/',
-        processors=[ResizeToFill(400, 400)],
-        format='JPEG',
-        options={'quality': 90},
-        null=True,
-        blank=True,
-        verbose_name='Foto de Perfil'
-    )
+    foto = models.ImageField(
+    upload_to='profile_photos/',
+    null=True,
+    blank=True,
+    verbose_name='Foto de Perfil'
+)
+
     
     # Contacto
     email = models.EmailField(verbose_name='Email Profesional')
