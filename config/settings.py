@@ -176,6 +176,7 @@ if (BASE_DIR / 'static').exists():
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+
 # ====================================
 # CLOUDINARY
 # ====================================
