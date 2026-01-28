@@ -243,12 +243,20 @@ class PerfilProfesionalForm(forms.ModelForm):
     
     def clean_foto(self):
         foto = self.cleaned_data.get('foto')
+
+    # Si no se subió imagen, no validar nada
         if not foto:
             return foto
-        if foto:
-            if foto.size > 5 * 1024 * 1024:  # 5MB
-                raise ValidationError('La imagen no puede superar 5MB.')
+
+    # Algunas veces foto existe pero no tiene size
+        if not hasattr(foto, 'size'):
+            return foto
+
+        if foto.size > 5 * 1024 * 1024:  # 5MB
+            raise ValidationError('La imagen no puede superar 5MB.')
+
         return foto
+
 
 
 # ======================================
