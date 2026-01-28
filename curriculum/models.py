@@ -7,8 +7,9 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 from django.urls import reverse
 from phonenumber_field.modelfields import PhoneNumberField
-from django.core.exceptions import ValidationError
 from datetime import date
+from django.core.exceptions import ValidationError
+
 
 import uuid
 
@@ -75,22 +76,34 @@ class PerfilProfesional(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
-    def clean(self):
-        if self.fecha_nacimiento:
-            hoy = date.today()
+    from datetime import date
+from django.core.exceptions import ValidationError
 
-        if self.fecha_nacimiento > hoy:
-            raise ValidationError("La fecha de nacimiento no puede ser futura.")
+def clean(self):
+    if not self.fecha_nacimiento:
+        return
 
-        edad = hoy.year - self.fecha_nacimiento.year - (
-            (hoy.month, hoy.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
+    hoy = date.today()
+
+    if self.fecha_nacimiento > hoy:
+        raise ValidationError(
+            {"fecha_nacimiento": "La fecha de nacimiento no puede ser futura."}
         )
 
-        if edad < 15:
-            raise ValidationError("La edad mínima permitida en Ecuador es 15 años.")
+    edad = hoy.year - self.fecha_nacimiento.year - (
+        (hoy.month, hoy.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
+    )
 
-        if edad > 75:
-            raise ValidationError("La edad ingresada no es válida.")
+    if edad < 15:
+        raise ValidationError(
+            {"fecha_nacimiento": "La edad mínima permitida en Ecuador es 15 años."}
+        )
+
+    if edad > 75:
+        raise ValidationError(
+            {"fecha_nacimiento": "La edad ingresada no es válida."}
+        )
+
 
     
     class Meta:
