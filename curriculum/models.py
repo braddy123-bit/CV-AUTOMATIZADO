@@ -114,13 +114,17 @@ class PerfilProfesional(models.Model):
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"
     
+    from django.utils.text import slugify
+
     def save(self, *args, **kwargs):
-        self.full_clean()
-
         if not self.slug:
-            self.slug = f"{self.nombres.lower()}-{self.apellidos.lower()}-{uuid.uuid4().hex[:8]}"
+            self.slug = slugify(
+                f"{self.nombres} {self.apellidos} {uuid.uuid4().hex[:8]}"
+            )
 
+        self.full_clean()
         super().save(*args, **kwargs)
+
         
 
     
