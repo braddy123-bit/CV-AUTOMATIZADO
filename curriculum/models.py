@@ -7,6 +7,8 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
 from django.urls import reverse
 from phonenumber_field.modelfields import PhoneNumberField
+from django.core.exceptions import ValidationError
+from datetime import date
 
 import uuid
 
@@ -72,6 +74,24 @@ class PerfilProfesional(models.Model):
     # Metadata
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        if self.fecha_nacimiento:
+            hoy = date.today()
+
+        if self.fecha_nacimiento > hoy:
+            raise ValidationError("La fecha de nacimiento no puede ser futura.")
+
+        edad = hoy.year - self.fecha_nacimiento.year - (
+            (hoy.month, hoy.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
+        )
+
+        if edad < 15:
+            raise ValidationError("La edad mínima permitida en Ecuador es 15 años.")
+
+        if edad > 75:
+            raise ValidationError("La edad ingresada no es válida.")
+
     
     class Meta:
         verbose_name = 'Perfil Profesional'
@@ -82,9 +102,14 @@ class PerfilProfesional(models.Model):
         return f"{self.nombres} {self.apellidos}"
     
     def save(self, *args, **kwargs):
+        self.full_clean()
+
         if not self.slug:
             self.slug = f"{self.nombres.lower()}-{self.apellidos.lower()}-{uuid.uuid4().hex[:8]}"
+
         super().save(*args, **kwargs)
+        
+
     
     def get_absolute_url(self):
         return reverse('curriculum:ver_cv', kwargs={'slug': self.slug})
@@ -156,6 +181,11 @@ class FormacionAcademica(models.Model):
     
     def __str__(self):
         return f"{self.titulo_obtenido} - {self.institucion}"
+    
+    def clean(self):
+        if self.fecha_fin and self.fecha_fin < self.fecha_inicio:
+            raise ValidationError("La fecha de finalización no puede ser anterior a la de inicio.")
+
 
 
 # ======================================
@@ -209,6 +239,11 @@ class ExperienciaProfesional(models.Model):
         if self.trabajo_actual:
             self.fecha_fin = None
         super().save(*args, **kwargs)
+    
+    def clean(self):
+        if self.fecha_fin and self.fecha_fin < self.fecha_inicio:
+            raise ValidationError("La fecha de finalización no puede ser anterior a la de inicio.")
+
 
 
 # ======================================
@@ -237,7 +272,7 @@ class Habilidad(models.Model):
         help_text='0 = Básico, 50 = Intermedio, 100 = Experto'
     )
     
-    anos_experiencia = models.PositiveIntegerField(default=0, verbose_name='Años de Experiencia')
+    anos_experiencia = models.PositiveIntegerField(default=0,validators=[MaxValueValidator(55)], verbose_name='Años de Experiencia')
     descripcion = models.TextField(max_length=200, blank=True, verbose_name='Descripción')
     
     # Para certificaciones
@@ -317,6 +352,11 @@ class Proyecto(models.Model):
     
     def __str__(self):
         return self.nombre
+    
+    def clean(self):
+        if self.fecha_fin and self.fecha_fin < self.fecha_inicio:
+            raise ValidationError("La fecha de fin no puede ser anterior a la fecha de inicio.")
+
 
 
 # ======================================
@@ -411,3 +451,7 @@ class Certificacion(models.Model):
             return True
         from datetime.date import today
         return self.fecha_expiracion > today()
+    
+    def clean(self):
+        if self.fecha_expiracion and self.fecha_expiracion < self.fecha_obtencion:
+            raise ValidationError("La fecha de expiración no puede ser anterior a la fecha de obtención.")
