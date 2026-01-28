@@ -77,32 +77,32 @@ class PerfilProfesional(models.Model):
     fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     from datetime import date
-from django.core.exceptions import ValidationError
+    from django.core.exceptions import ValidationError
 
-def clean(self):
-    if not self.fecha_nacimiento:
-        return
+    def clean(self):
+        if not self.fecha_nacimiento:
+            return
 
-    hoy = date.today()
+        hoy = date.today()
 
-    if self.fecha_nacimiento > hoy:
-        raise ValidationError(
-            {"fecha_nacimiento": "La fecha de nacimiento no puede ser futura."}
+        if self.fecha_nacimiento > hoy:
+            raise ValidationError(
+                {"fecha_nacimiento": "La fecha de nacimiento no puede ser futura."}
+            )
+
+        edad = hoy.year - self.fecha_nacimiento.year - (
+            (hoy.month, hoy.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
         )
 
-    edad = hoy.year - self.fecha_nacimiento.year - (
-        (hoy.month, hoy.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
-    )
+        if edad < 15:
+            raise ValidationError(
+                {"fecha_nacimiento": "La edad mínima permitida en Ecuador es 15 años."}
+            )
 
-    if edad < 15:
-        raise ValidationError(
-            {"fecha_nacimiento": "La edad mínima permitida en Ecuador es 15 años."}
-        )
-
-    if edad > 75:
-        raise ValidationError(
-            {"fecha_nacimiento": "La edad ingresada no es válida."}
-        )
+        if edad > 75:
+            raise ValidationError(
+                {"fecha_nacimiento": "La edad ingresada no es válida."}
+            )
 
 
     
@@ -196,8 +196,17 @@ class FormacionAcademica(models.Model):
         return f"{self.titulo_obtenido} - {self.institucion}"
     
     def clean(self):
-        if self.fecha_fin and self.fecha_fin < self.fecha_inicio:
-            raise ValidationError("La fecha de finalización no puede ser anterior a la de inicio.")
+        hoy = date.today()
+
+        if self.fecha_inicio > hoy:
+            raise ValidationError("La fecha de inicio no puede ser futura.")
+
+        if self.fecha_fin:
+            if self.fecha_fin > hoy:
+                raise ValidationError("La fecha de finalización no puede ser futura.")
+            if self.fecha_fin < self.fecha_inicio:
+                raise ValidationError("La fecha de finalización no puede ser anterior a la de inicio.")
+
 
 
 
@@ -254,8 +263,17 @@ class ExperienciaProfesional(models.Model):
         super().save(*args, **kwargs)
     
     def clean(self):
-        if self.fecha_fin and self.fecha_fin < self.fecha_inicio:
-            raise ValidationError("La fecha de finalización no puede ser anterior a la de inicio.")
+        hoy = date.today()
+
+        if self.fecha_inicio > hoy:
+            raise ValidationError("La fecha de inicio no puede ser futura.")
+
+        if self.fecha_fin:
+            if self.fecha_fin > hoy:
+                raise ValidationError("La fecha de finalización no puede ser futura.")
+            if self.fecha_fin < self.fecha_inicio:
+                raise ValidationError("La fecha de finalización no puede ser anterior a la de inicio.")
+
 
 
 
