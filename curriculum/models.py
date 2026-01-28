@@ -96,7 +96,7 @@ class PerfilProfesional(models.Model):
 
         if edad < 15:
             raise ValidationError(
-                {"fecha_nacimiento": "La edad mínima permitida en Ecuador es 15 años."}
+                {"fecha_nacimiento": "La edad mínima permitida es de 15 años."}
             )
 
         if edad > 75:
