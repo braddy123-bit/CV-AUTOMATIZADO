@@ -243,6 +243,8 @@ class PerfilProfesionalForm(forms.ModelForm):
     
     def clean_foto(self):
         foto = self.cleaned_data.get('foto')
+        if not foto:
+            return foto
         if foto:
             if foto.size > 5 * 1024 * 1024:  # 5MB
                 raise ValidationError('La imagen no puede superar 5MB.')
