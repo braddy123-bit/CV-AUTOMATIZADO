@@ -1,25 +1,28 @@
 """
-settings.py CORREGIDO - Sin error de Csv
+settings.py - SOLUCIÓN DEFINITIVA sin errores de Csv
 """
 
 from pathlib import Path
 import os
 import sys
 
-# Importar decouple
+# ====================================
+# IMPORTAR DECOUPLE - CORREGIDO
+# ====================================
+
 try:
     from decouple import config, Csv
+    HAS_DECOUPLE = True
 except ImportError:
+    HAS_DECOUPLE = False
+    # Fallback sin decouple
     def config(key, default=None, cast=None):
         value = os.environ.get(key, default)
         if cast and value:
+            if cast == bool:
+                return value.lower() in ('true', '1', 'yes')
             return cast(value)
         return value
-    
-    class Csv:
-        def __call__(self, value):
-            return [s.strip() for s in value.split(',')]
-    Csv = Csv()
 
 try:
     import dj_database_url
@@ -36,15 +39,21 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-' + os.urandom(24).he
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 # ====================================
-# ALLOWED_HOSTS - CORREGIDO
+# ALLOWED_HOSTS - SOLUCIÓN DEFINITIVA
 # ====================================
 
-# FORMA CORRECTA: Convertir a lista primero
-ALLOWED_HOSTS = list(config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv))
+# Obtener ALLOWED_HOSTS como string
+allowed_hosts_str = config('ALLOWED_HOSTS', default='localhost,127.0.0.1')
+
+# Convertir a lista manualmente (sin Csv)
+if isinstance(allowed_hosts_str, str):
+    ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',') if host.strip()]
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Agregar hostname de Render
 RENDER_EXTERNAL_HOSTNAME = config('RENDER_EXTERNAL_HOSTNAME', default='')
-if RENDER_EXTERNAL_HOSTNAME:
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # ====================================
@@ -191,10 +200,13 @@ CLOUDINARY_CONFIGURED = all([
 if not DEBUG and CLOUDINARY_CONFIGURED:
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     MEDIA_URL = '/media/'
+    print("✅ Using Cloudinary for media files")
 else:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    if not DEBUG:
+        print("⚠️ WARNING: Cloudinary not configured in production!")
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
@@ -272,4 +284,26 @@ LOGGING = {
         'handlers': ['console'],
         'level': 'INFO',
     },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
 }
+
+# ====================================
+# DEBUG INFO (PRODUCTION)
+# ====================================
+
+if not DEBUG:
+    print("="*50)
+    print("🚀 PRODUCTION CONFIG")
+    print("="*50)
+    print(f"Python: {sys.version}")
+    print(f"DEBUG: {DEBUG}")
+    print(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")
+    print(f"DATABASE: {'PostgreSQL' if 'postgres' in DATABASE_URL else 'SQLite'}")
+    print(f"CLOUDINARY: {'Configured' if CLOUDINARY_CONFIGURED else 'NOT Configured'}")
+    print("="*50)
