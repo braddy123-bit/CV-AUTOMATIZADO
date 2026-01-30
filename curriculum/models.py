@@ -1,491 +1,372 @@
 """
-Modelos para el Sistema de CV Profesional
+Modelos EXACTOS según las tablas SQL del profesor
+Adaptado 100% a la estructura proporcionada
 """
 
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator, MaxValueValidator, FileExtensionValidator
-from django.urls import reverse
-from phonenumber_field.modelfields import PhoneNumberField
-from datetime import date
+from django.core.validators import FileExtensionValidator
 from django.core.exceptions import ValidationError
-from django.utils.text import slugify
-
+from datetime import date
 import uuid
 
 
 # ======================================
-# MODELO: PERFIL PROFESIONAL
+# VALIDADORES
 # ======================================
 
-class PerfilProfesional(models.Model):
+def validar_fecha_pasada(value):
+    """No permite fechas futuras"""
+    if value > date.today():
+        raise ValidationError('La fecha no puede ser futura')
+
+
+def validar_fecha_nacimiento(value):
+    """Valida fecha de nacimiento"""
+    if value > date.today():
+        raise ValidationError('La fecha de nacimiento no puede ser futura')
+    edad = date.today().year - value.year
+    if edad < 15 or edad > 100:
+        raise ValidationError('La edad debe estar entre 15 y 100 años')
+
+
+# ======================================
+# TABLA: DATOSPERSONALES
+# ======================================
+
+class DatosPersonales(models.Model):
     """
-    Información personal y profesional del usuario
+    Mapea: DATOSPERSONALES
+    Campos EXACTOS de la tabla SQL
     """
-    NIVEL_EXPERIENCIA_CHOICES = [
-        ('junior', 'Junior (0-2 años)'),
-        ('mid', 'Mid-Level (3-5 años)'),
-        ('senior', 'Senior (6-10 años)'),
-        ('lead', 'Lead/Principal (10+ años)'),
+    SEXO_CHOICES = [('H', 'Hombre'), ('M', 'Mujer')]
+    
+    ESTADO_CIVIL_CHOICES = [
+        ('Soltero/a', 'Soltero/a'),
+        ('Casado/a', 'Casado/a'),
+        ('Divorciado/a', 'Divorciado/a'),
+        ('Viudo/a', 'Viudo/a'),
+        ('Unión Libre', 'Unión Libre'),
     ]
     
-    # Relación con usuario
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
+    # Usuario Django (no está en tabla SQL pero necesario)
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='datos_personales')
     
-    # Información personal
-    nombres = models.CharField(max_length=100, verbose_name='Nombres')
-    apellidos = models.CharField(max_length=100, verbose_name='Apellidos')
-    fecha_nacimiento = models.DateField(null=True, blank=True, verbose_name='Fecha de Nacimiento')
-    nacionalidad = models.CharField(max_length=50, default='Ecuatoriana', verbose_name='Nacionalidad')
+    # Campos EXACTOS de la tabla SQL
+    idperfil = models.AutoField(primary_key=True, db_column='idperfil')
+    descripcionperfil = models.CharField(max_length=50, db_column='descripcionperfil')
+    perfilactivo = models.IntegerField(default=1, db_column='perfilactivo')
+    apellidos = models.CharField(max_length=60, db_column='apellidos')
+    nombres = models.CharField(max_length=60, db_column='nombres')
+    nacionalidad = models.CharField(max_length=20, db_column='nacionalidad')
+    lugarnacimiento = models.CharField(max_length=60, db_column='lugarnacimiento')
+    fechanacimiento = models.DateField(db_column='fechanacimiento', validators=[validar_fecha_nacimiento])
+    numerocedula = models.CharField(max_length=10, unique=True, db_column='numerocedula')
+    sexo = models.CharField(max_length=1, choices=SEXO_CHOICES, db_column='sexo')
+    estadocivil = models.CharField(max_length=50, choices=ESTADO_CIVIL_CHOICES, db_column='estadocivil')
+    licenciaconducir = models.CharField(max_length=6, db_column='licenciaconducir')
+    telefonoconvencional = models.CharField(max_length=15, blank=True, db_column='telefonoconvencional')
+    telefonofijo = models.CharField(max_length=15, blank=True, db_column='telefonofijo')
+    direcciontrabajo = models.CharField(max_length=50, blank=True, db_column='direcciontrabajo')
+    direcciondomiciliaria = models.CharField(max_length=50, db_column='direcciondomiciliaria')
+    sitioweb = models.CharField(max_length=60, blank=True, db_column='sitioweb')
     
-    # Foto de perfil con procesamiento automático
-    foto = models.ImageField(
-    upload_to='profile_photos/',
-    null=True,
-    blank=True,
-    verbose_name='Foto de Perfil'
-)
-
-    
-    # Contacto
-    email = models.EmailField(verbose_name='Email Profesional')
-    telefono = PhoneNumberField(region='EC', verbose_name='Teléfono')
-    linkedin = models.URLField(max_length=200, blank=True, verbose_name='LinkedIn')
-    github = models.URLField(max_length=200, blank=True, verbose_name='GitHub')
-    portafolio_web = models.URLField(max_length=200, blank=True, verbose_name='Portafolio Web')
-    
-    # Ubicación
-    ciudad = models.CharField(max_length=100, verbose_name='Ciudad')
-    provincia = models.CharField(max_length=100, verbose_name='Provincia/Estado')
-    pais = models.CharField(max_length=100, default='Ecuador', verbose_name='País')
-    
-    # Profesión
-    titulo_profesional = models.CharField(max_length=150, verbose_name='Título Profesional')
-    nivel_experiencia = models.CharField(max_length=10, choices=NIVEL_EXPERIENCIA_CHOICES, default='mid')
-    anos_experiencia = models.PositiveIntegerField(default=0, verbose_name='Años de Experiencia')
-    
-    # Resumen profesional
-    resumen_profesional = models.TextField(max_length=500, verbose_name='Resumen Profesional')
-    objetivo_profesional = models.TextField(max_length=300, blank=True, verbose_name='Objetivo Profesional')
-    
-    # Configuración de privacidad
-    cv_publico = models.BooleanField(default=False, verbose_name='CV Público')
+    # Campos adicionales (no en SQL pero necesarios)
+    foto = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
     slug = models.SlugField(max_length=100, unique=True, blank=True)
-    
-    # Metadata
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
-
-    from datetime import date
-    from django.core.exceptions import ValidationError
-
-    def clean(self):
-        if not self.fecha_nacimiento:
-            return
-
-        hoy = date.today()
-
-        if self.fecha_nacimiento > hoy:
-            raise ValidationError(
-                {"fecha_nacimiento": "La fecha de nacimiento no puede ser futura."}
-            )
-
-        edad = hoy.year - self.fecha_nacimiento.year - (
-            (hoy.month, hoy.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
-        )
-
-        if edad < 15:
-            raise ValidationError(
-                {"fecha_nacimiento": "La edad mínima permitida es de 15 años."}
-            )
-
-        if edad > 75:
-            raise ValidationError(
-                {"fecha_nacimiento": "La edad ingresada no es válida."}
-            )
-
-
     
     class Meta:
-        verbose_name = 'Perfil Profesional'
-        verbose_name_plural = 'Perfiles Profesionales'
-        ordering = ['-fecha_actualizacion']
+        db_table = 'datospersonales'
+        verbose_name = 'Datos Personales'
+        verbose_name_plural = 'Datos Personales'
     
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"
     
-    
-
     def save(self, *args, **kwargs):
         if not self.slug:
-            base_slug = slugify(f"{self.nombres} {self.apellidos}")
-            self.slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
-
+            self.slug = f"{self.nombres}-{self.apellidos}-{uuid.uuid4().hex[:8]}".lower()
         super().save(*args, **kwargs)
-
-
-        
-
-    
-    def get_absolute_url(self):
-        return reverse('curriculum:ver_cv', kwargs={'slug': self.slug})
     
     @property
     def nombre_completo(self):
         return f"{self.nombres} {self.apellidos}"
-
-
-# ======================================
-# MODELO: FORMACIÓN ACADÉMICA
-# ======================================
-
-class FormacionAcademica(models.Model):
-    """
-    Educación formal del usuario
-    """
-    NIVEL_EDUCACION_CHOICES = [
-        ('bachillerato', 'Bachillerato'),
-        ('tecnico', 'Técnico/Tecnólogo'),
-        ('pregrado', 'Pregrado/Licenciatura'),
-        ('especializacion', 'Especialización'),
-        ('maestria', 'Maestría'),
-        ('doctorado', 'Doctorado'),
-    ]
-    
-    ESTADO_CHOICES = [
-        ('cursando', 'Cursando'),
-        ('completado', 'Completado'),
-        ('incompleto', 'Incompleto'),
-    ]
-    
-    perfil = models.ForeignKey(PerfilProfesional, on_delete=models.CASCADE, related_name='formacion_academica')
-    
-    nivel = models.CharField(max_length=20, choices=NIVEL_EDUCACION_CHOICES, verbose_name='Nivel de Educación')
-    titulo_obtenido = models.CharField(max_length=200, verbose_name='Título Obtenido')
-    institucion = models.CharField(max_length=200, verbose_name='Institución Educativa')
-    
-    fecha_inicio = models.DateField(verbose_name='Fecha de Inicio')
-    fecha_fin = models.DateField(null=True, blank=True, verbose_name='Fecha de Finalización')
-    estado = models.CharField(max_length=15, choices=ESTADO_CHOICES, default='completado')
-    
-    promedio = models.DecimalField(
-        max_digits=4, 
-        decimal_places=2, 
-        null=True, 
-        blank=True,
-        validators=[MinValueValidator(0), MaxValueValidator(10)],
-        verbose_name='Promedio/GPA'
-    )
-    
-    descripcion = models.TextField(max_length=500, blank=True, verbose_name='Descripción')
-    certificado = models.FileField(
-        upload_to='certificates/education/',
-        blank=True,
-        validators=[FileExtensionValidator(allowed_extensions=['pdf'])],
-        verbose_name='Certificado (PDF)'
-    )
-    
-    orden = models.PositiveIntegerField(default=0, verbose_name='Orden de visualización')
-    
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        verbose_name = 'Formación Académica'
-        verbose_name_plural = 'Formación Académica'
-        ordering = ['-fecha_inicio', 'orden']
-    
-    def __str__(self):
-        return f"{self.titulo_obtenido} - {self.institucion}"
-    
-    def clean(self):
-        hoy = date.today()
-
-        if self.fecha_inicio > hoy:
-            raise ValidationError("La fecha de inicio no puede ser futura.")
-
-        if self.fecha_fin:
-            if self.fecha_fin > hoy:
-                raise ValidationError("La fecha de finalización no puede ser futura.")
-            if self.fecha_fin < self.fecha_inicio:
-                raise ValidationError("La fecha de finalización no puede ser anterior a la de inicio.")
-
-
-
-
-# ======================================
-# MODELO: EXPERIENCIA PROFESIONAL
-# ======================================
-
-class ExperienciaProfesional(models.Model):
-    """
-    Experiencia laboral del usuario
-    """
-    TIPO_EMPLEO_CHOICES = [
-        ('tiempo_completo', 'Tiempo Completo'),
-        ('medio_tiempo', 'Medio Tiempo'),
-        ('freelance', 'Freelance'),
-        ('contrato', 'Contrato'),
-        ('pasantia', 'Pasantía'),
-    ]
-    
-    perfil = models.ForeignKey(PerfilProfesional, on_delete=models.CASCADE, related_name='experiencias')
-    
-    cargo = models.CharField(max_length=150, verbose_name='Cargo/Posición')
-    empresa = models.CharField(max_length=200, verbose_name='Empresa')
-    tipo_empleo = models.CharField(max_length=20, choices=TIPO_EMPLEO_CHOICES, default='tiempo_completo')
-    
-    ciudad = models.CharField(max_length=100, verbose_name='Ciudad')
-    pais = models.CharField(max_length=100, default='Ecuador', verbose_name='País')
-    
-    fecha_inicio = models.DateField(verbose_name='Fecha de Inicio')
-    fecha_fin = models.DateField(null=True, blank=True, verbose_name='Fecha de Finalización')
-    trabajo_actual = models.BooleanField(default=False, verbose_name='Trabajo Actual')
-    
-    descripcion = models.TextField(max_length=1000, verbose_name='Descripción de Responsabilidades')
-    logros = models.TextField(max_length=1000, blank=True, verbose_name='Logros Principales')
-    
-    tecnologias_usadas = models.CharField(max_length=500, blank=True, verbose_name='Tecnologías Utilizadas')
-    
-    orden = models.PositiveIntegerField(default=0)
-    
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        verbose_name = 'Experiencia Profesional'
-        verbose_name_plural = 'Experiencias Profesionales'
-        ordering = ['-fecha_inicio', 'orden']
-    
-    def __str__(self):
-        return f"{self.cargo} en {self.empresa}"
-    
-    def save(self, *args, **kwargs):
-        if self.trabajo_actual:
-            self.fecha_fin = None
-        super().save(*args, **kwargs)
-    
-    def clean(self):
-        hoy = date.today()
-
-        if self.fecha_inicio > hoy:
-            raise ValidationError("La fecha de inicio no puede ser futura.")
-
-        if self.fecha_fin:
-            if self.fecha_fin > hoy:
-                raise ValidationError("La fecha de finalización no puede ser futura.")
-            if self.fecha_fin < self.fecha_inicio:
-                raise ValidationError("La fecha de finalización no puede ser anterior a la de inicio.")
-
-
-
-
-# ======================================
-# MODELO: HABILIDADES
-# ======================================
-
-class Habilidad(models.Model):
-    """
-    Habilidades técnicas y blandas
-    """
-    TIPO_HABILIDAD_CHOICES = [
-        ('tecnica', 'Habilidad Técnica'),
-        ('blanda', 'Habilidad Blanda'),
-        ('idioma', 'Idioma'),
-        ('herramienta', 'Herramienta/Software'),
-    ]
-    
-    perfil = models.ForeignKey(PerfilProfesional, on_delete=models.CASCADE, related_name='habilidades')
-    
-    nombre = models.CharField(max_length=100, verbose_name='Nombre de la Habilidad')
-    tipo = models.CharField(max_length=15, choices=TIPO_HABILIDAD_CHOICES, default='tecnica')
-    nivel = models.PositiveIntegerField(
-        default=50,
-        validators=[MinValueValidator(0), MaxValueValidator(100)],
-        verbose_name='Nivel de Dominio (%)',
-        help_text='0 = Básico, 50 = Intermedio, 100 = Experto'
-    )
-    
-    anos_experiencia = models.PositiveIntegerField(default=0,validators=[MaxValueValidator(55)], verbose_name='Años de Experiencia')
-    descripcion = models.TextField(max_length=200, blank=True, verbose_name='Descripción')
-    
-    # Para certificaciones
-    certificado = models.FileField(
-        upload_to='certificates/skills/',
-        blank=True,
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png'])],
-        verbose_name='Certificado'
-    )
-    
-    orden = models.PositiveIntegerField(default=0)
-    destacada = models.BooleanField(default=False, verbose_name='Habilidad Destacada')
-    
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        verbose_name = 'Habilidad'
-        verbose_name_plural = 'Habilidades'
-        ordering = ['-destacada', 'tipo', '-nivel', 'orden']
-    
-    def __str__(self):
-        return f"{self.nombre} ({self.get_tipo_display()}) - {self.nivel}%"
-
-
-# ======================================
-# MODELO: PROYECTOS
-# ======================================
-
-class Proyecto(models.Model):
-    """
-    Proyectos destacados del usuario
-    """
-    ESTADO_CHOICES = [
-        ('en_desarrollo', 'En Desarrollo'),
-        ('completado', 'Completado'),
-        ('mantenimiento', 'En Mantenimiento'),
-        ('archivado', 'Archivado'),
-    ]
-    
-    perfil = models.ForeignKey(PerfilProfesional, on_delete=models.CASCADE, related_name='proyectos')
-    
-    nombre = models.CharField(max_length=200, verbose_name='Nombre del Proyecto')
-    descripcion_corta = models.CharField(max_length=200, verbose_name='Descripción Corta')
-    descripcion = models.TextField(max_length=1000, verbose_name='Descripción Detallada')
-    
-    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='completado')
-    
-    fecha_inicio = models.DateField(verbose_name='Fecha de Inicio')
-    fecha_fin = models.DateField(null=True, blank=True, verbose_name='Fecha de Finalización')
-    
-    rol = models.CharField(max_length=100, verbose_name='Tu Rol', help_text='Ej: Desarrollador Full Stack')
-    tecnologias = models.CharField(max_length=500, verbose_name='Tecnologías Utilizadas')
-    
-    # Enlaces
-    url_demo = models.URLField(max_length=200, blank=True, verbose_name='URL Demo/Sitio')
-    url_repositorio = models.URLField(max_length=200, blank=True, verbose_name='Repositorio (GitHub/GitLab)')
-    
-    # Imagen del proyecto
-    imagen = models.ImageField(
-    upload_to='project_images/',
-    null=True,
-    blank=True,
-    verbose_name='Imagen del Proyecto'
-)
-
-    
-    destacado = models.BooleanField(default=False, verbose_name='Proyecto Destacado')
-    orden = models.PositiveIntegerField(default=0)
-    
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        verbose_name = 'Proyecto'
-        verbose_name_plural = 'Proyectos'
-        ordering = ['-destacado', '-fecha_inicio', 'orden']
-    
-    def __str__(self):
-        return self.nombre
-    
-    def clean(self):
-        if self.fecha_fin and self.fecha_fin < self.fecha_inicio:
-            raise ValidationError("La fecha de fin no puede ser anterior a la fecha de inicio.")
-
-
-
-# ======================================
-# MODELO: REFERENCIAS PROFESIONALES
-# ======================================
-
-class ReferenciaProfesional(models.Model):
-    """
-    Referencias de colegas o superiores
-    """
-    perfil = models.ForeignKey(PerfilProfesional, on_delete=models.CASCADE, related_name='referencias')
-    
-    nombre_completo = models.CharField(max_length=150, verbose_name='Nombre Completo')
-    cargo = models.CharField(max_length=150, verbose_name='Cargo')
-    empresa = models.CharField(max_length=200, verbose_name='Empresa')
-    
-    relacion = models.CharField(
-        max_length=200, 
-        verbose_name='Relación Profesional',
-        help_text='Ej: Ex-supervisor directo, Colega de equipo'
-    )
-    
-    email = models.EmailField(verbose_name='Email')
-    telefono = PhoneNumberField(region='EC', verbose_name='Teléfono')
-    linkedin = models.URLField(max_length=200, blank=True, verbose_name='LinkedIn')
-    
-    testimonio = models.TextField(max_length=500, blank=True, verbose_name='Testimonio/Recomendación')
-    
-    # Configuración de privacidad
-    mostrar_contacto = models.BooleanField(
-        default=False, 
-        verbose_name='Mostrar Información de Contacto',
-        help_text='Si está desactivado, solo se mostrará el nombre y cargo'
-    )
-    
-    orden = models.PositiveIntegerField(default=0)
-    
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        verbose_name = 'Referencia Profesional'
-        verbose_name_plural = 'Referencias Profesionales'
-        ordering = ['orden', '-fecha_creacion']
-    
-    def __str__(self):
-        return f"{self.nombre_completo} - {self.cargo} en {self.empresa}"
-
-
-# ======================================
-# MODELO: CERTIFICACIONES
-# ======================================
-
-class Certificacion(models.Model):
-    """
-    Certificaciones y cursos adicionales
-    """
-    perfil = models.ForeignKey(PerfilProfesional, on_delete=models.CASCADE, related_name='certificaciones')
-    
-    nombre = models.CharField(max_length=200, verbose_name='Nombre de la Certificación/Curso')
-    institucion = models.CharField(max_length=200, verbose_name='Institución/Plataforma')
-    
-    fecha_obtencion = models.DateField(verbose_name='Fecha de Obtención')
-    fecha_expiracion = models.DateField(null=True, blank=True, verbose_name='Fecha de Expiración')
-    
-    codigo_credencial = models.CharField(max_length=100, blank=True, verbose_name='Código de Credencial')
-    url_verificacion = models.URLField(max_length=200, blank=True, verbose_name='URL de Verificación')
-    
-    descripcion = models.TextField(max_length=500, blank=True, verbose_name='Descripción')
-    
-    certificado = models.FileField(
-        upload_to='certificates/certifications/',
-        blank=True,
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png'])],
-        verbose_name='Certificado'
-    )
-    
-    orden = models.PositiveIntegerField(default=0)
-    
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        verbose_name = 'Certificación'
-        verbose_name_plural = 'Certificaciones'
-        ordering = ['-fecha_obtencion', 'orden']
-    
-    def __str__(self):
-        return f"{self.nombre} - {self.institucion}"
     
     @property
-    def esta_vigente(self):
-        if not self.fecha_expiracion:
-            return True
-        from datetime.date import today
-        return self.fecha_expiracion > today()
+    def edad(self):
+        hoy = date.today()
+        return hoy.year - self.fechanacimiento.year - ((hoy.month, hoy.day) < (self.fechanacimiento.month, self.fechanacimiento.day))
+
+
+# ======================================
+# TABLA: EXPERIENCIALABORAL
+# ======================================
+
+class ExperienciaLaboral(models.Model):
+    """
+    Mapea: EXPERIENCIALABORAL
+    Campos EXACTOS de la tabla SQL
+    """
+    # Campos EXACTOS
+    idexperiencilaboral = models.AutoField(primary_key=True, db_column='idexperiencilaboral')
+    idperfilconqueestaactivo = models.ForeignKey(
+        DatosPersonales,
+        on_delete=models.CASCADE,
+        related_name='experiencias_laborales',
+        db_column='idperfilconqueestaactivo'
+    )
+    cargodesempenado = models.CharField(max_length=100, db_column='cargodesempenado')
+    nombrempresa = models.CharField(max_length=50, db_column='nombrempresa')
+    lugarempresa = models.CharField(max_length=50, db_column='lugarempresa')
+    emailempresa = models.CharField(max_length=100, blank=True, db_column='emailempresa')
+    sitiowebempresa = models.CharField(max_length=100, blank=True, db_column='sitiowebempresa')
+    nombrecontactoempresarial = models.CharField(max_length=100, blank=True, db_column='nombrecontactoempresarial')
+    telefonocontactoempresarial = models.CharField(max_length=60, blank=True, db_column='telefonocontactoempresarial')
+    fechainiciogestion = models.DateField(db_column='fechainiciogestion', validators=[validar_fecha_pasada])
+    fechafingestion = models.DateField(null=True, blank=True, db_column='fechafingestion')
+    descripcionfunciones = models.CharField(max_length=100, db_column='descripcionfunciones')
+    activarparaqueseveaenfront = models.BooleanField(default=True, db_column='activarparaqueseveaenfront')
+    rutacertificado = models.CharField(max_length=100, blank=True, db_column='rutacertificado')
+    
+    # Campo adicional para subir archivos
+    archivo_certificado = models.FileField(
+        upload_to='certificados/experiencia/',
+        blank=True,
+        validators=[FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png'])]
+    )
+    
+    class Meta:
+        db_table = 'experiencialaboral'
+        verbose_name = 'Experiencia Laboral'
+        verbose_name_plural = 'Experiencias Laborales'
+        ordering = ['-fechainiciogestion']
+    
+    def __str__(self):
+        return f"{self.cargodesempenado} - {self.nombrempresa}"
     
     def clean(self):
-        if self.fecha_expiracion and self.fecha_expiracion < self.fecha_obtencion:
-            raise ValidationError("La fecha de expiración no puede ser anterior a la fecha de obtención.")
+        if self.fechafingestion:
+            if self.fechafingestion > date.today():
+                raise ValidationError({'fechafingestion': 'La fecha de fin no puede ser futura'})
+            if self.fechafingestion < self.fechainiciogestion:
+                raise ValidationError({'fechafingestion': 'La fecha de fin no puede ser anterior a la fecha de inicio'})
+
+
+# ======================================
+# TABLA: RECONOCIMIENTOS
+# ======================================
+
+class Reconocimiento(models.Model):
+    """
+    Mapea: RECONOCIMIENTOS
+    Campos EXACTOS de la tabla SQL
+    """
+    TIPO_CHOICES = [
+        ('Académico', 'Académico'),
+        ('Público', 'Público'),
+        ('Privado', 'Privado'),
+    ]
+    
+    # Campos EXACTOS
+    idreconocimiento = models.AutoField(primary_key=True, db_column='idreconocimiento')
+    idperfilconqueestaactivo = models.ForeignKey(
+        DatosPersonales,
+        on_delete=models.CASCADE,
+        related_name='reconocimientos',
+        db_column='idperfilconqueestaactivo'
+    )
+    tiporeconocimiento = models.CharField(max_length=100, choices=TIPO_CHOICES, db_column='tiporeconocimiento')
+    fechareconocimiento = models.DateField(db_column='fechareconocimiento', validators=[validar_fecha_pasada])
+    descripcionreconocimiento = models.CharField(max_length=100, db_column='descripcionreconocimiento')
+    entidadpatrocinadora = models.CharField(max_length=100, db_column='entidadpatrocinadora')
+    nombrecontactoauspicia = models.CharField(max_length=100, blank=True, db_column='nombrecontactoauspicia')
+    telefonocontactoauspicia = models.CharField(max_length=60, blank=True, db_column='telefonocontactoauspicia')
+    activarparaqueseveaenfront = models.BooleanField(default=True, db_column='activarparaqueseveaenfront')
+    rutacertificado = models.CharField(max_length=100, blank=True, db_column='rutacertificado')
+    
+    # Campo adicional
+    archivo_certificado = models.FileField(
+        upload_to='certificados/reconocimientos/',
+        blank=True,
+        validators=[FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png'])]
+    )
+    
+    class Meta:
+        db_table = 'reconocimientos'
+        verbose_name = 'Reconocimiento'
+        verbose_name_plural = 'Reconocimientos'
+        ordering = ['-fechareconocimiento']
+    
+    def __str__(self):
+        return f"{self.tiporeconocimiento} - {self.entidadpatrocinadora}"
+    
+    def clean(self):
+        if self.fechareconocimiento > date.today():
+            raise ValidationError({'fechareconocimiento': 'La fecha no puede ser futura'})
+
+
+# ======================================
+# TABLA: CURSOSREALIZADOS
+# ======================================
+
+class CursoRealizado(models.Model):
+    """
+    Mapea: CURSOSREALIZADOS
+    Campos EXACTOS de la tabla SQL
+    """
+    # Campos EXACTOS
+    idcursorealizado = models.AutoField(primary_key=True, db_column='idcursorealizado')
+    idperfilconqueestaactivo = models.ForeignKey(
+        DatosPersonales,
+        on_delete=models.CASCADE,
+        related_name='cursos_realizados',
+        db_column='idperfilconqueestaactivo'
+    )
+    nombrecurso = models.CharField(max_length=100, db_column='nombrecurso')
+    fechainicio = models.DateField(db_column='fechainicio', validators=[validar_fecha_pasada])
+    fechafin = models.DateField(db_column='fechafin')
+    totalhoras = models.IntegerField(db_column='totalhoras')
+    descripcioncurso = models.CharField(max_length=100, db_column='descripcioncurso')
+    entidadpatrocinadora = models.CharField(max_length=100, db_column='entidadpatrocinadora')
+    nombrecontactoauspicia = models.CharField(max_length=100, blank=True, db_column='nombrecontactoauspicia')
+    telefonocontactoauspicia = models.CharField(max_length=60, blank=True, db_column='telefonocontactoauspicia')
+    emailempresapatrocinadora = models.CharField(max_length=60, blank=True, db_column='emailempresapatrocinadora')
+    activarparaqueseveaenfront = models.BooleanField(default=True, db_column='activarparaqueseveaenfront')
+    rutacertificado = models.CharField(max_length=100, blank=True, db_column='rutacertificado')
+    
+    # Campo adicional
+    archivo_certificado = models.FileField(
+        upload_to='certificados/cursos/',
+        blank=True,
+        validators=[FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png'])]
+    )
+    
+    class Meta:
+        db_table = 'cursosrealizados'
+        verbose_name = 'Curso Realizado'
+        verbose_name_plural = 'Cursos Realizados'
+        ordering = ['-fechainicio']
+    
+    def __str__(self):
+        return f"{self.nombrecurso} - {self.entidadpatrocinadora}"
+    
+    def clean(self):
+        if self.fechafin > date.today():
+            raise ValidationError({'fechafin': 'La fecha de fin no puede ser futura'})
+        if self.fechainicio and self.fechafin < self.fechainicio:
+            raise ValidationError({'fechafin': 'La fecha de fin no puede ser anterior a la fecha de inicio'})
+
+
+# ======================================
+# TABLA: PRODUCTOSACADEMICOS
+# ======================================
+
+class ProductoAcademico(models.Model):
+    """
+    Mapea: PRODUCTOSACADEMICOS
+    Campos EXACTOS de la tabla SQL
+    """
+    # Campos EXACTOS
+    idproductoacademico = models.AutoField(primary_key=True, db_column='idproductoacademico')
+    idperfilconqueestaactivo = models.ForeignKey(
+        DatosPersonales,
+        on_delete=models.CASCADE,
+        related_name='productos_academicos',
+        db_column='idperfilconqueestaactivo'
+    )
+    nombrerecurso = models.CharField(max_length=100, db_column='nombrerecurso')
+    clasificador = models.CharField(max_length=100, db_column='clasificador')
+    descripcion = models.CharField(max_length=100, db_column='descripcion')
+    activarparaqueseveaenfront = models.BooleanField(default=True, db_column='activarparaqueseveaenfront')
+    
+    class Meta:
+        db_table = 'productosacademicos'
+        verbose_name = 'Producto Académico'
+        verbose_name_plural = 'Productos Académicos'
+    
+    def __str__(self):
+        return self.nombrerecurso
+    
+    def get_etiquetas(self):
+        """Devuelve lista de etiquetas del clasificador"""
+        return [tag.strip() for tag in self.clasificador.split(',') if tag.strip()]
+
+
+# ======================================
+# TABLA: PRODUCTOSLABORALES
+# ======================================
+
+class ProductoLaboral(models.Model):
+    """
+    Mapea: PRODUCTOSLABORALES
+    Campos EXACTOS de la tabla SQL
+    """
+    # Campos EXACTOS
+    idproductoslaborales = models.AutoField(primary_key=True, db_column='idproductoslaborales')
+    idperfilconqueestaactivo = models.ForeignKey(
+        DatosPersonales,
+        on_delete=models.CASCADE,
+        related_name='productos_laborales',
+        db_column='idperfilconqueestaactivo'
+    )
+    nombreproducto = models.CharField(max_length=100, db_column='nombreproducto')
+    fechaproducto = models.DateField(db_column='fechaproducto', validators=[validar_fecha_pasada])
+    descripcion = models.CharField(max_length=100, db_column='descripcion')
+    activarparaqueseveaenfront = models.BooleanField(default=True, db_column='activarparaqueseveaenfront')
+    
+    class Meta:
+        db_table = 'productoslaborales'
+        verbose_name = 'Producto Laboral'
+        verbose_name_plural = 'Productos Laborales'
+        ordering = ['-fechaproducto']
+    
+    def __str__(self):
+        return self.nombreproducto
+
+
+# ======================================
+# TABLA: VENTAGARAGE
+# ======================================
+
+class VentaGarage(models.Model):
+    """
+    Mapea: VENTAGARAGE
+    Campos EXACTOS de la tabla SQL
+    """
+    ESTADO_CHOICES = [
+        ('Bueno', 'Bueno'),
+        ('Regular', 'Regular'),
+    ]
+    
+    # Campos EXACTOS
+    idventagarage = models.AutoField(primary_key=True, db_column='idventagarage')
+    idperfilconqueestaactivo = models.ForeignKey(
+        DatosPersonales,
+        on_delete=models.CASCADE,
+        related_name='ventas_garage',
+        db_column='idperfilconqueestaactivo'
+    )
+    nombreproducto = models.CharField(max_length=100, db_column='nombreproducto')
+    estadoproducto = models.CharField(max_length=40, choices=ESTADO_CHOICES, db_column='estadoproducto')
+    descripcion = models.CharField(max_length=100, db_column='descripcion')
+    valordelbien = models.DecimalField(max_digits=5, decimal_places=2, db_column='valordelbien')
+    activarparaqueseveaenfront = models.BooleanField(default=True, db_column='activarparaqueseveaenfront')
+    
+    # Campos adicionales (corrección del profesor)
+    fecha_publicacion = models.DateField(default=date.today)
+    imagen_producto = models.ImageField(upload_to='venta_garage/', blank=True, null=True)
+    
+    class Meta:
+        db_table = 'ventagarage'
+        verbose_name = 'Venta Garage'
+        verbose_name_plural = 'Ventas Garage'
+        ordering = ['-fecha_publicacion']
+    
+    def __str__(self):
+        return f"{self.nombreproducto} - ${self.valordelbien}"
+    
+    def get_color_estado(self):
+        """Color según estado"""
+        return '#28a745' if self.estadoproducto == 'Bueno' else '#ffc107'
